@@ -1,0 +1,37 @@
+{% extends "base.html" %}{% from "_exp.html" import row %}{% block body %}
+<div class="acts">
+<a class="p" href="{{ url_for('index', cat=fuel_cat) }}"><svg class="i"><use href="#i-plus"/></svg>Nuovo rifornimento</a>
+<a class="p" href="{{ url_for('index', cat=car_cat) }}"><svg class="i"><use href="#i-plus"/></svg>Nuova spesa auto</a>
+<a href="{{ url_for('cars_page') }}"><svg class="i"><use href="#i-car"/></svg>Gestisci auto</a></div>
+{% if car.id!=in_use and not car.archived %}<form method="post" action="{{ url_for('car_use') }}"><input type="hidden" name="car_id" value="{{ car.id }}"><button><svg class="i"><use href="#i-check"/></svg>Usa questa auto</button></form>{% endif %}
+<form class="card filters" method="get">
+<label class="full">Auto<select name="car" onchange="this.form.submit()">{% for c in cars %}<option value="{{ c.id }}" {{ 'selected' if c.id==car.id }}>{{ c.name }}{{ ' · in uso' if c.id==in_use }}{{ ' (archiviata)' if c.archived }}</option>{% endfor %}</select></label>
+<label class="full">Periodo<select name="year" onchange="this.form.submit()"><option value="0">Tutti gli anni</option>{% for y in years %}<option {{ 'selected' if y|int==year }}>{{ y }}</option>{% endfor %}</select></label>
+<button>Mostra</button></form>
+{% if st.n %}
+<div class="card"><div class="stats">
+<div class="stat"><b>{{ st.avg_l100|dec(2) if st.avg_l100 else '–' }}</b><span>L / 100 km (media)</span></div>
+<div class="stat"><b>{{ st.avg_kml|dec(2) if st.avg_kml else '–' }}</b><span>km / L (media)</span></div>
+<div class="stat"><b>{{ (st.cost100|eur ~ ' €') if st.cost100 else '–' }}</b><span>costo ogni 100 km</span></div>
+<div class="stat"><b>{{ st.tot_spend|eur }} €</b><span>spesa totale</span></div>
+<div class="stat"><b>{{ st.tot_l|dec(1) }}</b><span>litri · {{ st.n }} rifornimenti</span></div>
+<div class="stat"><b>{{ st.km|dec(0) }}</b><span>km percorsi</span></div></div>
+{% if st.best %}<p class="meta" style="margin:12px 0 0">Migliore {{ st.best|dec(2) }} L/100 km · peggiore {{ st.worst|dec(2) }} L/100 km</p>{% endif %}
+{% if not st.n_cons %}<p class="meta" style="margin:12px 0 0">Per calcolare i consumi servono i litri e i km totali in almeno due rifornimenti (oppure i km col pieno precedente).</p>{% endif %}</div>
+{% if bars %}<h2>Consumo per rifornimento (L/100 km)</h2><div class="card"><div class="bars">{% for h, v, d in bars %}<i style="height:{{ h }}%" title="{{ d[8:] }}/{{ d[5:7] }}: {{ v|dec(2) }}"></i>{% endfor %}</div>
+<div class="row" style="justify-content:space-between;margin-top:6px"><span class="meta">{{ bars[0][2][8:] }}/{{ bars[0][2][5:7] }}</span><span class="meta">{{ bars[-1][2][8:] }}/{{ bars[-1][2][5:7] }}</span></div></div>{% endif %}
+<h2>Rifornimenti</h2>
+<div class="card">{% for r in rows %}<a class="exp" href="{{ url_for('edit', id=r.expense_id) }}">
+<div class="d">{{ r.date[8:] }}/{{ r.date[5:7] }}<small>{{ r.date[:4] }}</small></div>
+<div class="m"><b>{{ r.total|eur }} €{% if r.liters_l %} · {{ r.liters_l|dec(2) }} L{% endif %}</b>
+<small>{% if r.fill_no %}#{{ r.fill_no }} · {% endif %}{% if r.price %}{{ r.price|dec(3) }} €/L{% endif %}{% if r.odometer %} · {{ r.odometer|dec(0) }} km tot.{% endif %}{% if r.private %} · <svg class="i lk"><use href="#i-lock"/></svg>{% endif %}</small>
+{% if r.trip %}<small>{{ r.trip|dec(0) }} km col pieno{% if r.trip_auto %} (calcolati){% endif %}{% if r.claimed_km %} · dichiarati {{ r.claimed_km|dec(0) }} ({{ ('%+.1f'|format(r.diff_pct))|replace('.',',') }}%){% endif %}</small>{% endif %}</div>
+<div class="a">{% if r.l100 %}{{ r.l100|dec(2) }} <small style="display:inline">L/100</small><small>{{ r.kml|dec(2) }} km/L</small>{% else %}–{% endif %}</div></a>
+{% else %}Nessun rifornimento per questa auto: inseriscine uno con la categoria «Benzina».{% endfor %}</div>
+{% else %}<div class="card">Nessun rifornimento registrato per <b>{{ car.name }}</b>.</div>{% endif %}
+<h2>Altre spese auto</h2>
+{% if others %}<div class="card">{% for r in others %}{{ row(r) }}{% endfor %}
+<div class="tot" style="padding-bottom:0"><span>{{ others|length }} spese</span><span>{{ oth_tot|eur }} €</span></div></div>
+<div class="card"><div class="stats"><div class="stat"><b>{{ car_total|eur }} €</b><span>costo totale {{ car.name }} (benzina + altre spese)</span></div></div></div>
+{% else %}<div class="card">Nessuna spesa (assicurazione, tagliando, ...) per <b>{{ car.name }}</b>: inseriscila con la categoria «Auto».</div>{% endif %}
+{% endblock %}

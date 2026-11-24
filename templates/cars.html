@@ -1,0 +1,14 @@
+{% extends "base.html" %}{% block body %}
+<form class="card row" method="post" action="{{ url_for('car_add') }}"><input name="name" placeholder="Nuova auto (es. Panda)" required maxlength="40"><button>Aggiungi</button></form>
+<div class="card">{% for c in cars if not c.archived %}
+<div style="margin-bottom:14px"><div class="row">
+<form method="post" action="{{ url_for('car_rename', id=c.id) }}" class="row" style="flex:1"><input name="name" value="{{ c.name }}" required maxlength="40"><button class="ico" title="Salva nome" aria-label="Salva nome"><svg class="i"><use href="#i-save"/></svg></button></form>
+<form method="post" action="{{ url_for('car_delete', id=c.id) }}" onsubmit="return confirm('{{ 'Ha spese registrate: verrà archiviata. Continuare?' if c.n else 'Eliminare questa auto?' }}')"><button class="del ico" title="Rimuovi" aria-label="Rimuovi"><svg class="i"><use href="#i-trash"/></svg></button></form></div>
+<div class="row" style="margin-top:6px">{% if c.id==in_use %}<span class="meta" style="flex:1"><b style="color:var(--ac)">● In uso da te</b> · {{ c.n }} spese</span>
+{% else %}<span class="meta" style="flex:1">{{ c.n }} spese</span><form method="post" action="{{ url_for('car_use') }}"><input type="hidden" name="car_id" value="{{ c.id }}"><button><svg class="i"><use href="#i-check"/></svg>Usa questa</button></form>{% endif %}</div></div>
+{% endfor %}</div>
+{% if cars|selectattr('archived')|list %}<h2>Archiviate</h2><div class="card">{% for c in cars if c.archived %}
+<div class="row" style="margin-bottom:8px"><span style="flex:1">{{ c.name }} <span class="meta">({{ c.n }} spese)</span></span>
+<form method="post" action="{{ url_for('car_restore', id=c.id) }}"><button>Ripristina</button></form></div>{% endfor %}</div>{% endif %}
+<p class="meta">Le auto sono condivise da tutti gli utenti; «in uso» invece è una scelta personale: è l'auto proposta quando inserisci un rifornimento.</p>
+{% endblock %}

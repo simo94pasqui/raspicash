@@ -1,0 +1,4 @@
+<nav class="seg" aria-label="Esporta o importa">
+<a href="{{ url_for('backup_page') }}" class="{{ 'on' if request.endpoint=='backup_page' }}"><svg class="i"><use href="#i-download"/></svg>Esporta</a>
+<a href="{{ url_for('import_page') }}" class="{{ 'on' if request.endpoint in ('import_page','import_preview','import_review','import_fix') }}"><svg class="i"><use href="#i-upload"/></svg>Importa</a>
+</nav>

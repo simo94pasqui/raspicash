@@ -1,0 +1,22 @@
+{% extends "base.html" %}{% block body %}
+<a class="card" href="{{ url_for('users') }}" style="display:flex;gap:10px;align-items:center;color:inherit;text-decoration:none"><svg class="i"><use href="#i-users"/></svg><b>Gestione utenti</b></a>
+
+<div class="card"><h2 style="margin-top:0">Backup completo</h2>
+<p class="meta">Un unico file con tutto: utenti, categorie e spese (comprese le private di tutti). Conservalo fuori dal Raspberry (PC, cloud) e tienilo al sicuro.</p>
+<form method="get" action="{{ url_for('admin_backup') }}"><button><svg class="i"><use href="#i-download"/></svg>Scarica backup completo</button></form></div>
+
+<div class="card"><h2 style="margin-top:0">Ripristina da backup</h2>
+<p class="meta">Sostituisce TUTTI i dati attuali con quelli del file. Prima viene salvata una copia dello stato attuale nella cartella <code>data/</code> del Pi.</p>
+<form method="post" action="{{ url_for('admin_restore') }}" enctype="multipart/form-data">
+<label>File di backup (.db)<input type="file" name="backup" required></label>
+<label>Scrivi RIPRISTINA per confermare<input name="confirm" autocomplete="off" required></label>
+<button class="del">Ripristina</button></form></div>
+
+<div class="card"><h2 style="margin-top:0">Elimina un anno</h2>
+<p class="meta">Cancella per sempre tutte le spese dell'anno scelto, condivise e private di tutti gli utenti. Scarica prima il backup completo e gli Excel.</p>
+<form method="post" action="{{ url_for('admin_delete_year') }}">
+<label>Anno<select name="year">{% for y in years %}<option>{{ y }}</option>{% endfor %}</select></label>
+<label>Riscrivi l'anno per confermare<input name="confirm" inputmode="numeric" autocomplete="off" required></label>
+<button class="del">Elimina anno</button></form></div>
+<p class="meta">RaspiCash {{ version }}</p>
+{% endblock %}

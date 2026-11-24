@@ -1,0 +1,78 @@
+<label>Data<input type="date" name="date" value="{{ e.date }}" required></label>
+<label>Descrizione<input name="description" value="{{ e.description }}" required maxlength="120" autocomplete="off"></label>
+<label>Categoria<select name="category_id" required>{% for c in cats %}<option value="{{ c.id }}" {{ 'selected' if c.id==e.category_id }}>{{ c.name }}</option>{% endfor %}</select></label>
+<div class="two">
+<label>Importo €<input name="amount" inputmode="decimal" value="{{ e.amount }}" placeholder="0,00"></label>
+<label id="vol">Importo buono €<input name="voucher" inputmode="decimal" value="{{ e.voucher }}" placeholder="0,00"></label></div>
+<div id="fuel" hidden>
+<label>Auto<select name="car_id">{% for k in cars %}<option value="{{ k.id }}" data-next="{{ nexts.get(k.id,1) }}" {{ 'selected' if k.id==f.car_id }}>{{ k.name }}</option>{% endfor %}</select></label>
+<div class="two">
+<label>N. rifornimento<input name="fill_no" inputmode="numeric" value="{{ f.fill_no }}"></label>
+<label>Km totali auto<input name="odometer" inputmode="numeric" value="{{ f.odometer }}" placeholder="es. 45230"></label></div>
+<div class="two">
+<label>Litri<input name="liters" inputmode="decimal" value="{{ f.liters }}" placeholder="0,00"></label>
+<label>Prezzo al litro €<input name="price_l" inputmode="decimal" value="{{ f.price }}" placeholder="auto"></label></div>
+<div class="two">
+<label>Km col pieno precedente<input name="trip_km" inputmode="numeric" value="{{ f.trip_km }}" placeholder="auto"></label>
+<label>Km dichiarati dall'auto<input name="claimed_km" inputmode="numeric" value="{{ f.claimed_km }}"></label></div>
+<p class="meta">Bastano l'importo o i litri: con due valori su tre (importo, litri, prezzo al litro) calcolo il terzo. Se lasci vuoti i km col pieno precedente, uso la differenza dei km totali.</p>
+</div>
+<div id="tripx" hidden>
+<label>Viaggio<select name="trip_id"><option value="" {{ 'selected' if trips and not tp.trip_id }}>Scegli…</option>{% for t in trips %}<option value="{{ t.id }}" data-work="{{ t.is_work }}" {{ 'selected' if t.id==tp.trip_id }}>{{ t.name }}{{ ' (lavoro)' if t.is_work }}</option>{% endfor %}<option value="new" {{ 'selected' if not trips }}>+ Nuovo viaggio…</option></select></label>
+<div id="newt"><label>Nome del nuovo viaggio<input name="new_trip" maxlength="60" autocomplete="off" placeholder="es. Vacanza Loano"></label>
+<label class="chk"><input type="checkbox" name="new_trip_work" value="1"> Viaggio di lavoro (alcune spese le paga l'azienda)</label></div>
+<label id="payl">Pagata da<select name="paid_by"><option value="me" {{ 'selected' if tp.paid_by!='company' }}>Io</option><option value="company" {{ 'selected' if tp.paid_by=='company' }}>Azienda (non la pago io)</option></select></label>
+</div>
+<div id="carx" hidden>
+<label>Auto<select name="car_id">{% for k in cars %}<option value="{{ k.id }}" {{ 'selected' if k.id==f.car_id }}>{{ k.name }}</option>{% endfor %}</select></label>
+</div>
+<label class="chk" id="privl"><input type="checkbox" name="private" value="1" {{ 'checked' if e.private }} {{ 'disabled' if e.owner_id and e.owner_id!=g.user.id }}> <svg class="i lk"><use href="#i-lock"/></svg> Privata (solo tu la vedi)</label>
+<label class="chk" id="subl"><input type="checkbox" name="subloan" value="1" {{ 'checked' if ln.sub }}> <svg class="i lk"><use href="#i-swap"/></svg> Prestiti</label>
+<div id="subx" hidden>
+<label>Movimento<select name="loan_dir"><option value="given" {{ 'selected' if ln.dir=='given' }}>Prestati a ...</option><option value="received" {{ 'selected' if ln.dir=='received' }}>Anticipati da ...</option></select></label>
+<label>Persona<select name="person_id"><option value="" {{ 'selected' if people and not ln.person_id }}>Scegli…</option>{% for p in people %}<option value="{{ p.id }}" {{ 'selected' if p.id==ln.person_id }}>{{ p.name }}</option>{% endfor %}<option value="new" {{ 'selected' if not people }}>+ Nuova persona…</option></select></label>
+<label class="newpl">Nome della nuova persona<input name="new_person" maxlength="40" autocomplete="off" placeholder="es. Marco"></label>
+<label>Importo del prestito €<input name="loan_amount" inputmode="decimal" value="{{ ln.amount }}" placeholder="0,00"></label>
+<p class="meta">L'importo sopra è il totale della spesa. Qui indica la parte prestata (o che ha pagato l'altra persona). Se l'hai dato tu, nel Riepilogo la spesa conta il totale meno questa parte.</p>
+</div>
+<script>(function(){
+var s=document.querySelector('select[name=category_id]'),box=document.getElementById('fuel'),
+d=document.querySelector('input[name=description]'),car=box.querySelector('select[name=car_id]'),
+no=box.querySelector('input[name=fill_no]'),li=box.querySelector('input[name=liters]'),
+pr=box.querySelector('input[name=price_l]'),am=document.querySelector('input[name=amount]'),
+vo=document.querySelector('input[name=voucher]'),vol=document.getElementById('vol'),
+fuel={{ fuel_ids|tojson }},carIds={{ car_ids|tojson }},tripIds={{ trip_ids|tojson }},
+tx=document.getElementById('tripx'),tps=tx.querySelector('select[name=trip_id]'),tnp=tx.querySelector('input[name=new_trip]'),
+newt=document.getElementById('newt'),twk=tx.querySelector('input[name=new_trip_work]'),payl=document.getElementById('payl'),
+pay=tx.querySelector('select[name=paid_by]'),
+cx=document.getElementById('carx'),cxs=cx.querySelector('select'),
+pv=document.querySelector('input[name=private]'),pvl=document.getElementById('privl'),pv0=pv.disabled,
+noDirty=false,prDirty=false;
+function n(x){var v=parseFloat((x.value||'').replace(',','.'));return isNaN(v)?0:v}
+function mkloan(root){var ps=root.querySelector('select[name=person_id]'),np=root.querySelector('input[name=new_person]'),
+nl=root.querySelector('.newpl'),am=root.querySelector('input[name=loan_amount]');
+function psync(){var nw=!root.hidden&&ps.value==='new';nl.style.display=nw?'':'none';np.disabled=!nw;np.required=nw}
+ps.addEventListener('change',psync);
+return function(on){root.hidden=!on;root.querySelectorAll('input,select').forEach(function(el){el.disabled=!on});
+ps.required=on;if(am)am.required=on;psync()}}
+var sset=mkloan(document.getElementById('subx')),
+subc=document.querySelector('input[name=subloan]'),subl=document.getElementById('subl');
+function tsync(){var on=!tx.hidden,nw=on&&tps.value==='new',o=tps.options[tps.selectedIndex],
+work=on&&(nw?twk.checked:!!(o&&o.dataset.work==='1'));
+newt.style.display=nw?'':'none';tnp.disabled=!nw;tnp.required=nw;twk.disabled=!nw;
+payl.style.display=work?'':'none';pay.disabled=!work}
+function sync(){var v=+s.value,on=fuel.indexOf(v)>=0,c=carIds.indexOf(v)>=0,t=tripIds.indexOf(v)>=0;
+box.hidden=!on;box.querySelectorAll('input,select').forEach(function(el){el.disabled=!on});
+d.required=!on;
+tx.hidden=!t;tps.disabled=!t;tps.required=t;tsync();
+cx.hidden=!c;cxs.disabled=!c;
+var co=!tx.hidden&&!pay.disabled&&pay.value==='company',sk=!(on||c||co);
+subl.style.display=sk?'':'none';subc.disabled=!sk;sset(sk&&subc.checked);
+pvl.style.display=(on||c)?'none':'';pv.disabled=(on||c)?true:pv0}
+function calc(){if(prDirty)return;var L=n(li),T=n(am)+n(vo);if(L>0&&T>0)pr.value=(T/L).toFixed(3).replace('.',',')}
+s.addEventListener('change',sync);subc.addEventListener('change',sync);pay.addEventListener('change',sync);tps.addEventListener('change',sync);twk.addEventListener('change',sync);
+car.addEventListener('change',function(){if(!noDirty)no.value=car.options[car.selectedIndex].dataset.next});
+no.addEventListener('input',function(){noDirty=true});
+pr.addEventListener('input',function(){prDirty=true});
+[li,am,vo].forEach(function(el){el.addEventListener('input',calc)});
+sync();})();</script>

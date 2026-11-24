@@ -1,0 +1,48 @@
+{% extends "base.html" %}{% block body %}
+{% macro trow(r, work) %}<div class="exp"><a class="tl" href="{{ url_for('edit', id=r.id) }}"><div class="d">{{ r.date[8:] }}/{{ r.date[5:7] }}<small>{{ r.date[:4] }}</small></div>
+<div class="m"><b>{{ r.description }}</b><small>{{ r.owner }}{% if r.private %} · <svg class="i lk"><use href="#i-lock"/></svg>{% endif %}</small></div>
+<div class="a">{{ (r.amount+r.voucher)|eur }} €</div></a>
+{% if work %}<form method="post" action="{{ url_for('trip_payer', id=r.id) }}"><button class="mv" title="{{ 'Passa tra le mie spese' if r.company else 'Passa tra le spese dell\'azienda' }}" aria-label="{{ 'Passa tra le mie spese' if r.company else 'Passa tra le spese dell\'azienda' }}"><svg class="i"><use href="#i-swap"/></svg></button></form>{% endif %}</div>{% endmacro %}
+{% if sel %}
+<div class="acts n2">
+<a class="p" href="{{ url_for('index', cat=trip_cat, trip=sel.id) }}"><svg class="i"><use href="#i-plus"/></svg>Nuova spesa</a>
+<a href="{{ url_for('backup_trip', trip=sel.id) }}"><svg class="i"><use href="#i-download"/></svg>Esporta Excel</a></div>
+<a class="dl" style="text-align:left;padding:0 0 10px" href="{{ url_for('trips') }}"><svg class="i"><use href="#i-back"/></svg>Tutti i viaggi</a>
+<div class="card"><h2 style="margin:0 0 4px">{{ sel.name }} {% if sel.is_work %}<span class="bd">lavoro</span>{% endif %}{% if sel.archived %} <span class="meta">(archiviato)</span>{% endif %}</h2>
+{% if first %}<span class="meta">{{ first[8:] }}/{{ first[5:7] }}/{{ first[:4] }}{% if last!=first %} – {{ last[8:] }}/{{ last[5:7] }}/{{ last[:4] }}{% endif %} · {{ rows|length }} spese</span>{% endif %}
+<div class="stats" style="margin-top:12px">
+<div class="stat"><b>{{ mine|eur }} €</b><span>{{ 'spese mie' if sel.is_work else 'totale viaggio' }}</span></div>
+{% if sel.is_work %}<div class="stat"><b>{{ comp|eur }} €</b><span>pagate dall'azienda</span></div>
+<div class="stat"><b>{{ (mine+comp)|eur }} €</b><span>totale viaggio</span></div>{% endif %}</div></div>
+{% if sel.is_work %}
+<h2>Pagate da me · {{ mine|eur }} €</h2>
+<div class="card">{% for r in rows if not r.company %}{{ trow(r, true) }}{% else %}Nessuna spesa tua.{% endfor %}</div>
+<h2>Pagate dall'azienda · {{ comp|eur }} €</h2>
+<div class="card">{% for r in rows if r.company %}{{ trow(r, true) }}{% else %}Nessuna spesa pagata dall'azienda.{% endfor %}</div>
+<p class="meta">Tocca <svg class="i lk"><use href="#i-swap"/></svg> per spostare una spesa tra le tue e quelle dell'azienda (ad esempio se l'azienda non la rimborsa). Le spese dell'azienda non entrano nel Riepilogo né nei totali.</p>
+{% else %}
+<h2>Spese</h2>
+<div class="card">{% for r in rows %}{{ trow(r, false) }}{% else %}Nessuna spesa in questo viaggio: aggiungi la prima con «Nuova spesa».{% endfor %}</div>
+{% endif %}
+<h2>Impostazioni viaggio</h2>
+<form class="card" method="post" action="{{ url_for('trip_update', id=sel.id) }}">
+<label>Nome<input name="name" value="{{ sel.name }}" required maxlength="60"></label>
+<label class="chk"><input type="checkbox" name="work" value="1" {{ 'checked' if sel.is_work }}> Viaggio di lavoro (alcune spese le paga l'azienda)</label>
+<button>Salva</button></form>
+{% if sel.archived %}<form method="post" action="{{ url_for('trip_restore', id=sel.id) }}"><button>Ripristina viaggio</button></form>
+{% else %}<form method="post" action="{{ url_for('trip_delete', id=sel.id) }}" onsubmit="return confirm('{{ 'Ha spese: verrà archiviato. Continuare?' if rows else 'Eliminare questo viaggio?' }}')"><button class="del">{{ 'Archivia viaggio' if rows else 'Elimina viaggio' }}</button></form>{% endif %}
+{% else %}
+<div class="acts n1"><a class="p" href="{{ url_for('index', cat=trip_cat) }}"><svg class="i"><use href="#i-plus"/></svg>Nuova spesa di viaggio</a></div>
+<form class="card" method="post" action="{{ url_for('trip_add') }}"><div class="row"><input name="name" placeholder="Nuovo viaggio (es. Vacanza al mare)" required maxlength="60"><button>Crea</button></div>
+<label class="chk"><input type="checkbox" name="work" value="1"> Viaggio di lavoro (alcune spese le paga l'azienda)</label></form>
+<h2>Viaggi</h2>
+<div class="card">{% for t in trips if not t.archived %}<a class="exp" href="{{ url_for('trips', trip=t.id) }}">
+<div class="m"><b>{{ t.name }}{% if t.is_work %} <span class="bd">lavoro</span>{% endif %}</b>
+<small>{% if t.first %}{{ t.first[8:] }}/{{ t.first[5:7] }}/{{ t.first[:4] }}{% if t.last!=t.first %} – {{ t.last[8:] }}/{{ t.last[5:7] }}/{{ t.last[:4] }}{% endif %} · {% endif %}{{ t.n }} spese</small></div>
+<div class="a">{{ t.mine|eur }} €{% if t.comp %}<small>+ {{ t.comp|eur }} € azienda</small>{% endif %}</div></a>
+{% else %}Nessun viaggio ancora: creane uno qui sopra, oppure scrivilo direttamente mentre inserisci una spesa nella categoria «Viaggi».{% endfor %}</div>
+{% if trips|selectattr('archived')|list %}<h2>Archiviati</h2><div class="card">{% for t in trips if t.archived %}<a class="exp" href="{{ url_for('trips', trip=t.id) }}">
+<div class="m"><b>{{ t.name }}</b><small>{{ t.n }} spese</small></div><div class="a">{{ t.mine|eur }} €</div></a>{% endfor %}</div>{% endif %}
+<p class="meta">I viaggi sono condivisi da tutti gli utenti; le singole spese possono essere private. Gli importi sono quelli che vedi tu.</p>
+{% endif %}
+{% endblock %}

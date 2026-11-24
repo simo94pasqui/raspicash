@@ -1,0 +1,43 @@
+{% extends "base.html" %}{% block body %}
+<form class="card filters" method="get">
+<label>Anno<select name="year">{% for y in years %}<option {{ 'selected' if y|int==year }}>{{ y }}</option>{% endfor %}</select></label>
+<label>Spese<select name="scope"><option value="shared">Condivise</option><option value="mine" {{ 'selected' if scope=='mine' }}>Mie private</option><option value="all" {{ 'selected' if scope=='all' }}>Tutte</option></select></label>
+<button>Mostra</button></form>
+<div class="card"><div class="stats">
+<div class="stat"><b>{{ grand|eur }} €</b><span>Totale {{ year }}</span></div>
+<div class="stat"><b>{{ n_exp }}</b><span>{{ 'spesa' if n_exp == 1 else 'spese' }}</span></div>
+<div class="stat"><b>{{ tot_a|eur }} €</b><span>Importo</span></div>
+<div class="stat"><b>{{ tot_v|eur }} €</b><span>Buoni</span></div>
+</div></div>
+<h2>Spese per categoria</h2>
+<div class="card"><div class="pie" style="background:conic-gradient({{ grad }})"></div>
+{% for c, v, pct, col in items %}<div class="leg"><span><i style="background:{{ col }}"></i>{{ c }}</span><span>{{ v|eur }} € · {{ '%.0f'|format(pct) }}%</span></div>{% else %}<p class="meta">Nessun dato per questo anno.</p>{% endfor %}
+{% if items %}<div class="leg" style="border-top:1px solid var(--bd);margin-top:6px;padding-top:8px"><span><b>Totale</b></span><span><b>{{ grand|eur }} €</b></span></div>{% endif %}</div>
+<h2>Spese per mese</h2>
+<div class="card"><div class="mbars">{% for m, t, h in mbars %}<div class="mb" title="{{ m }}: {{ t|eur }} €">{% if h %}<i style="height:{{ h }}%"></i>{% else %}<i class="z"></i>{% endif %}</div>{% endfor %}</div>
+<div class="mlab">{% for m, t, h in mbars %}<span>{{ m[0] }}</span>{% endfor %}</div>
+{% if mstat.top %}<div class="leg" style="margin-top:10px"><span><b>Totale anno</b></span><span><b>{{ grand|eur }} €</b></span></div>
+<div class="leg"><span>Mese più alto</span><span><b>{{ mstat.top }}</b> · {{ mstat.top_v|eur }} €</span></div>
+<div class="leg"><span>Media mensile</span><span><b>{{ mstat.avg|round|int|eur }} €</b></span></div>
+<p class="meta" style="margin:6px 0 0">Media sui mesi con spese. Tocca una colonna per l'importo; i valori esatti sono nella tabella sotto.</p>
+{% else %}<p class="meta" style="margin:10px 0 0">Nessuna spesa per questo anno.</p>{% endif %}</div>
+{% if company_tot %}<p class="meta" style="margin:-4px 2px 12px">Non incluse nei conti: {{ company_tot|eur }} € di spese pagate dall'azienda (viaggi di lavoro).</p>{% endif %}
+{% if open_loans %}<a class="card" href="{{ url_for('loans') }}" style="display:block;color:inherit;text-decoration:none"><b>Prestiti aperti</b>
+<div class="leg"><span>Ti devono</span><span class="cr"><b>{{ loan_tot.credit|eur }} €</b></span></div>
+<div class="leg"><span>Devi</span><span class="db"><b>{{ loan_tot.debt|eur }} €</b></span></div>
+<p class="meta" style="margin:6px 0 0">Le categorie qui sotto non contano la parte che hai prestato. Tocca per il dettaglio per persona.</p></a>{% endif %}
+<h2>Categorie per mese (€)</h2>
+<div class="card scroll"><table><thead><tr><th>Categoria</th>{% for m in months %}<th>{{ m[:3] }}</th>{% endfor %}<th>Totale</th></tr></thead><tbody>
+{% for c in cats %}{% set i = loop.index0 %}<tr><th>{{ c }}</th>{% for name, vals, tot in table %}<td>{{ vals[i]|eur if vals[i] else '–' }}</td>{% endfor %}<td><b>{{ coltot[i]|eur }}</b></td></tr>
+{% else %}<tr><th>Nessun dato</th></tr>{% endfor %}
+</tbody><tfoot><tr><th>Totale</th>{% for name, vals, tot in table %}<td>{{ tot|eur if tot else '–' }}</td>{% endfor %}<td>{{ grand|eur }}</td></tr></tfoot></table></div>
+<h2>Riepilogo Mesi (€)</h2>
+<div class="card scroll"><table><thead><tr><th>Mese</th><th>Importo</th><th>Buoni</th><th>Totale</th></tr></thead><tbody>
+{% for name, a, v in mt %}<tr><th>{{ name }}</th><td>{{ a|eur if a else '–' }}</td><td>{{ v|eur if v else '–' }}</td><td><b>{{ (a+v)|eur if a+v else '–' }}</b></td></tr>{% endfor %}
+</tbody><tfoot><tr><th>Anno</th><td>{{ mt|sum(attribute=1)|eur }}</td><td>{{ mt|sum(attribute=2)|eur }}</td><td>{{ grand|eur }}</td></tr></tfoot></table></div>
+<h2>Riepilogo Categorie (€)</h2>
+<div class="card scroll"><table><thead><tr><th>Categoria</th><th>Importo</th><th>Buoni</th><th>Totale</th></tr></thead><tbody>
+{% for c, a, v in ct %}<tr><th>{{ c }}</th><td>{{ a|eur if a else '–' }}</td><td>{{ v|eur if v else '–' }}</td><td><b>{{ (a+v)|eur if a+v else '–' }}</b></td></tr>
+{% else %}<tr><th>Nessun dato</th></tr>{% endfor %}
+</tbody><tfoot><tr><th>Anno</th><td>{{ ct|sum(attribute=1)|eur }}</td><td>{{ ct|sum(attribute=2)|eur }}</td><td>{{ grand|eur }}</td></tr></tfoot></table></div>
+{% endblock %}

@@ -1,0 +1,22 @@
+{% extends "base.html" %}{% block body %}
+{% include "_xtabs.html" %}
+<form class="card" method="get" action="{{ url_for('backup') }}"><h2 style="margin-top:0">Spese dell'anno</h2>
+<label>Anno<select name="year">{% for y in years %}<option>{{ y }}</option>{% endfor %}</select></label>
+<button name="scope" value="shared"><svg class="i"><use href="#i-download"/></svg>Spese condivise</button>
+<button name="scope" value="mine"><svg class="i"><use href="#i-download"/></svg>Le mie spese private</button>
+<p class="meta">Le private contengono solo quelle inserite da te ({{ g.user.name }}).</p></form>
+<form class="card" method="get" action="{{ url_for('backup_fuel') }}"><h2 style="margin-top:0">Storico di un'auto</h2>
+<label>Auto<select name="car">{% for k in cars %}<option value="{{ k.id }}" {{ 'selected' if k.id==cur_car }}>{{ k.name }}{{ ' (archiviata)' if k.archived }}</option>{% endfor %}</select></label>
+<button formaction="{{ url_for('backup_car') }}"><svg class="i"><use href="#i-download"/></svg>Tutte le spese (storico completo)</button>
+<button><svg class="i"><use href="#i-download"/></svg>Solo rifornimenti (tutti gli anni)</button>
+<p class="meta">Lo storico completo ha un riepilogo per anno, tutte le spese dell'auto (benzina, assicurazione, tagliando, ...) e il dettaglio dei rifornimenti.</p></form>
+{% if trips %}<form class="card" method="get" action="{{ url_for('backup_trip') }}"><h2 style="margin-top:0">Viaggio</h2>
+<label>Viaggio<select name="trip">{% for t in trips %}<option value="{{ t.id }}">{{ t.name }}{{ ' (lavoro)' if t.is_work }}{{ ' (archiviato)' if t.archived }}</option>{% endfor %}</select></label>
+<button><svg class="i"><use href="#i-download"/></svg>Esporta le spese del viaggio</button>
+<p class="meta">Tutte le spese del viaggio, con chi ha pagato (tu o l'azienda) e i totali.</p></form>{% endif %}
+<form class="card" method="get" action="{{ url_for('backup_loans') }}"><h2 style="margin-top:0">Prestiti</h2>
+<label>Anno<select name="year"><option value="0">Tutti gli anni</option>{% for y in years %}<option>{{ y }}</option>{% endfor %}</select></label>
+<label>Persona<select name="person"><option value="0">Tutte le persone</option>{% for p in people %}<option value="{{ p.id }}">{{ p.name }}{{ ' (archiviata)' if p.archived }}</option>{% endfor %}</select></label>
+<button><svg class="i"><use href="#i-download"/></svg>Esporta prestiti</button>
+<p class="meta">Movimenti, riporto degli anni precedenti e saldo finale: chi deve a chi e quanto. Conta le voci che vedi tu (condivise e le tue private).</p></form>
+{% endblock %}

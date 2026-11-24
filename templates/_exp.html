@@ -1,0 +1,3 @@
+{% macro row(e) %}<a class="exp" href="{{ url_for('edit', id=e.id) }}"><div class="d">{{ e.date[8:] }}/{{ e.date[5:7] }}</div>
+<div class="m"><b>{{ e.description }}</b><small>{{ e.cat }}{% if e.trip %} · {{ e.trip }}{% endif %} · {{ e.owner }}{% if e.private %} · <svg class="i lk"><use href="#i-lock"/></svg>{% endif %}</small></div>
+<div class="a{{ ' co' if e.company }}">{{ (e.amount+e.voucher)|eur }} €{% if e.company %}<small>pagata dall'azienda</small>{% endif %}{% if e.person %}<small>{{ 'Anticipati da ' if e.loan_part<0 else 'Prestati a ' }}{{ e.person }} {{ e.loan_part|abs|eur }} €</small>{% endif %}{% if e.voucher %}<small>di cui buono {{ e.voucher|eur }}</small>{% endif %}</div></a>{% endmacro %}

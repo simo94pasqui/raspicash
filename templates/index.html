@@ -1,0 +1,11 @@
+{% extends "base.html" %}{% from "_exp.html" import row %}{% block body %}
+{% if cats %}<form class="card" method="post" action="{{ url_for('add') }}">{% include "_form.html" %}<button>Salva spesa</button></form>
+<div class="card" id="scan"><input type="file" id="scanf" accept="image/*" capture="environment" hidden><input type="file" id="scang" accept="image/*" hidden>
+<button type="button" id="scanb" style="margin-top:0"><svg class="i" viewBox="0 0 24 24"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>Scansiona scontrino</button>
+<a href="#" id="scangl" class="dl" style="padding:8px 0 0;font-weight:400;font-size:14px">oppure scegli una foto dalla galleria</a>
+<div id="scans" class="meta" style="margin-top:8px" hidden></div></div>
+<script src="{{ url_for('static', filename='scan.js') }}"></script>
+{% else %}<div class="card"><b>Prima di inserire una spesa serve almeno una categoria.</b>
+<a class="dl" href="{{ url_for('categories') }}"><svg class="i"><use href="#i-tag"/></svg>Crea le tue categorie</a></div>{% endif %}
+<h2>Ultime inserite</h2><div class="card">{% for r in recent %}{{ row(r) }}{% else %}Nessuna spesa ancora: inserisci la prima qui sopra.{% endfor %}</div>
+{% endblock %}

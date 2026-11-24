@@ -1,0 +1,5 @@
+{% extends "base.html" %}{% block body %}
+<form class="card" method="post">{% include "_form.html" %}<button>Salva modifiche</button></form>
+<p class="meta">Inserita da {{ e.owner }} il {{ e.created_at }}{% if e.updater %} · ultima modifica di {{ e.updater }} il {{ e.updated_at }}{% endif %}</p>
+<form method="post" action="{{ url_for('delete', id=e.id) }}" onsubmit="return confirm('Eliminare questa spesa?')"><button class="del">Elimina spesa</button></form>
+{% endblock %}

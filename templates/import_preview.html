@@ -1,0 +1,52 @@
+{% extends "base.html" %}{% block body %}
+{% include "_xtabs.html" %}
+{% set n_ok = counts.new + counts.complete %}
+{% set n_need = plan.items|selectattr('needs')|selectattr('status','in',['new','complete'])|list|length %}
+<h2 style="margin-top:0">{{ title }}</h2>
+<p class="meta" style="margin-top:-4px">File «{{ fname }}» · {{ plan.items|length }} righe lette{% if plan.ignored %} · {{ plan.ignored }} di totali ignorate{% endif %}{% if nfix %} · {{ nfix }} corrette da te{% endif %}{% if plan.excluded %} · {{ plan.excluded }} escluse da te{% endif %}</p>
+<div class="card"><div class="stats">
+<div class="stat"><b class="cr">{{ counts.new }}</b><span>nuove, da importare</span></div>
+{% if kind == 'rifornimenti' %}<div class="stat"><b class="cr">{{ counts.complete }}</b><span>da completare (spesa Benzina già presente)</span></div>{% endif %}
+<div class="stat"><b>{{ counts.dup }}</b><span>già presenti, saltate</span></div>
+{% if counts.ambiguous %}<div class="stat"><b class="wr">{{ counts.ambiguous }}</b><span>da controllare a mano</span></div>{% endif %}
+{% if counts.skip %}<div class="stat"><b>{{ counts.skip }}</b><span>saltate (Benzina)</span></div>{% endif %}
+<div class="stat"><b class="{{ 'db' if counts.error else '' }}">{{ counts.error }}</b><span>con errori, non importate</span></div>
+</div></div>
+{% if counts.error %}<div class="card"><b>{{ counts.error }} {{ 'riga ha un errore e non verrà importata' if counts.error == 1 else 'righe hanno errori e non verranno importate' }}.</b>
+<p class="meta" style="margin:6px 0 0">Vuoi risolverli adesso? Ti mostro una riga alla volta: correggi il valore sbagliato oppure escludi la riga.</p>
+<form method="get" action="{{ url_for('import_fix') }}"><input type="hidden" name="token" value="{{ token }}"><button><svg class="i"><use href="#i-check"/></svg>Risolvi gli errori</button></form></div>{% endif %}
+{% if plan.new_trip or plan.missing.values()|map('length')|sum or plan.react.values()|map('length')|sum %}
+<div class="card"><b>Nomi che non esistono ancora</b>
+{% if plan.new_trip %}<p class="meta" style="margin:6px 0 0">Verrà creato il viaggio <b>{{ plan.new_trip }}</b>{{ ' (di lavoro)' if opt and opt.work }}.</p>{% endif %}
+{% for k, v in plan.missing.items() if v %}<p class="meta" style="margin:6px 0 0">{{ k|capitalize }}: {% for nm, c in v.values() %}<b>{{ nm }}</b> ({{ c }}){{ ', ' if not loop.last }}{% endfor %}</p>{% endfor %}
+{% for k, v in plan.react.items() if v %}<p class="meta" style="margin:6px 0 0">Verranno riattivati ({{ k }}, erano archiviati): {{ v.values()|join(', ') }}.</p>{% endfor %}
+</div>{% endif %}
+<form class="card" method="post" action="{{ url_for('import_confirm') }}">
+<input type="hidden" name="token" value="{{ token }}"><input type="hidden" name="kind" value="{{ kind }}">
+{% if opt %}<input type="hidden" name="trip_id" value="{{ opt.id if opt.id else 'new' }}"><input type="hidden" name="new_trip" value="{{ opt.new or '' }}">{% if opt.work %}<input type="hidden" name="new_trip_work" value="1">{% endif %}{% endif %}
+{% if n_need %}<label class="chk"><input type="checkbox" name="create" value="1" checked> Crea i nomi mancanti</label>
+<p class="meta" style="margin:4px 0 0">Senza la spunta le {{ n_need }} righe che li usano non vengono importate.</p>{% else %}<input type="hidden" name="create" value="1">{% endif %}
+{% if n_ok %}<button><svg class="i"><use href="#i-check"/></svg>Importa {{ n_ok }} {{ 'riga' if n_ok == 1 else 'righe' }}</button>
+{% else %}<p style="margin:0">Non c'è nulla da importare.</p>{% endif %}
+<a class="dl" href="{{ url_for('import_page') }}">Annulla</a></form>
+{% macro rows(items, cls, limit=60) %}{% for r in items[:limit] %}<div class="ir"><div class="n">r.{{ r.row }}</div>
+<div class="t">{{ r.label.desc or '—' }}<small>{% if r.label.date %}{{ r.label.date[8:] }}/{{ r.label.date[5:7] }}/{{ r.label.date[:4] }}{% endif %}{% if r.msg %}{{ ' · ' if r.label.date }}<span class="{{ cls }}">{{ r.msg }}</span>{% endif %}{% for w in r.warn %}<br><span class="wr">⚠ {{ w }}</span>{% endfor %}</small></div>
+{% if r.label.total %}<div class="v">{{ r.label.total|eur }} €</div>{% endif %}</div>{% endfor %}
+{% if items|length > limit %}<p class="meta" style="margin:8px 0 0">… e altre {{ items|length - limit }} righe.</p>{% endif %}{% endmacro %}
+{% set errs = plan.items|selectattr('status','equalto','error')|list %}
+{% set amb = plan.items|selectattr('status','equalto','ambiguous')|list %}
+{% set comp = plan.items|selectattr('status','equalto','complete')|list %}
+{% set news = plan.items|selectattr('status','equalto','new')|list %}
+{% set skips = plan.items|selectattr('status','equalto','skip')|list %}
+{% set warns = plan.items|selectattr('warn')|selectattr('status','in',['new','complete'])|list %}
+{% set softs = plan.items|selectattr('soft')|list %}
+{% if softs %}<h2>Già presenti · da verificare</h2><div class="card"><p class="meta" style="margin:0 0 6px">Righe del file abbinate a una spesa che hai già (anche se nel file c'è un errore o un valore diverso). Non verranno importate; se in realtà è una spesa diversa, premi «È diversa».</p>
+{% for r in softs[:100] %}<div class="ir"><div class="n">r.{{ r.row }}</div>
+<div class="t">{{ r.label.desc or '—' }}<small>{% if r.label.date %}{{ r.label.date[8:] }}/{{ r.label.date[5:7] }}/{{ r.label.date[:4] }} · {% endif %}<span class="meta">{{ r.msg }}</span></small></div>
+<form method="post" action="{{ url_for('import_force') }}"><input type="hidden" name="token" value="{{ token }}"><input type="hidden" name="row" value="{{ r.row }}"><button style="width:auto;margin:0;padding:6px 10px;font-size:13px;background:transparent;color:var(--ac);border:1px solid var(--bd)">È diversa</button></form></div>{% endfor %}</div>{% endif %}
+{% if errs %}<h2>Errori · non importate</h2><div class="card">{{ rows(errs, 'db', 100) }}</div>{% endif %}
+{% if amb %}<h2>Da controllare a mano</h2><div class="card">{{ rows(amb, 'wr', 100) }}</div>{% endif %}
+{% if skips %}<h2>Saltate</h2><div class="card">{{ rows(skips, 'meta', 20) }}</div>{% endif %}
+{% if comp %}<h2>Da completare</h2><div class="card">{{ rows(comp, 'cr', 60) }}</div>{% endif %}
+{% if news %}<h2>Nuove</h2><div class="card">{{ rows(news, 'cr', 40) }}</div>{% endif %}
+{% endblock %}

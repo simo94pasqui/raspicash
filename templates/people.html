@@ -1,0 +1,14 @@
+{% extends "base.html" %}{% block body %}
+<form class="card row" method="post" action="{{ url_for('person_add') }}"><input name="name" placeholder="Nuova persona (es. Marco)" required maxlength="40"><button>Aggiungi</button></form>
+<div class="card">{% for p in people if not p.archived %}
+<div style="margin-bottom:14px"><div class="row">
+<form method="post" action="{{ url_for('person_rename', id=p.id) }}" class="row" style="flex:1"><input name="name" value="{{ p.name }}" required maxlength="40"><button class="ico" title="Salva nome" aria-label="Salva nome"><svg class="i"><use href="#i-save"/></svg></button></form>
+<form method="post" action="{{ url_for('person_delete', id=p.id) }}" onsubmit="return confirm('{{ 'Ha movimenti: verrà archiviata. Continuare?' if p.n else 'Eliminare questa persona?' }}')"><button class="del ico" title="Rimuovi" aria-label="Rimuovi"><svg class="i"><use href="#i-trash"/></svg></button></form></div>
+<span class="meta">{{ p.n }} movimenti</span></div>
+{% else %}Nessuna persona.{% endfor %}</div>
+{% if people|selectattr('archived')|list %}<h2>Archiviate</h2><div class="card">{% for p in people if p.archived %}
+<div class="row" style="margin-bottom:8px"><span style="flex:1">{{ p.name }} <span class="meta">({{ p.n }} movimenti)</span></span>
+<form method="post" action="{{ url_for('person_restore', id=p.id) }}"><button>Ripristina</button></form></div>{% endfor %}</div>{% endif %}
+<p class="meta">Le persone sono condivise da tutti gli utenti; i movimenti invece possono essere privati. Puoi anche creare una persona direttamente mentre inserisci un prestito.</p>
+<a class="dl" href="{{ url_for('loans') }}"><svg class="i"><use href="#i-back"/></svg>Torna ai prestiti</a>
+{% endblock %}

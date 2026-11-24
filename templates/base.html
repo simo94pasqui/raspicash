@@ -1,0 +1,75 @@
+<!doctype html><html lang="it"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#c2185b"><meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="manifest" href="{{ url_for('manifest') }}"><link rel="icon" href="{{ url_for('static', filename='icon.svg') }}">
+<script>try{var t=localStorage.getItem("theme");if(t)document.documentElement.dataset.theme=t}catch(e){}</script>
+<title>RaspiCash</title><link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}"></head><body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+<symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+<symbol id="i-list" viewBox="0 0 24 24"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></symbol>
+<symbol id="i-pie" viewBox="0 0 24 24"><path d="M21.2 15.9A10 10 0 1 1 8 2.8"/><path d="M22 12A10 10 0 0 0 12 2v10z"/></symbol>
+<symbol id="i-tag" viewBox="0 0 24 24"><path d="M20.6 13.4l-7.2 7.2a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8z"/><circle cx="7.5" cy="7.5" r="1"/></symbol>
+<symbol id="i-xfer" viewBox="0 0 24 24"><path d="M7 20V4M3 8l4-4 4 4M17 4v16M13 16l4 4 4-4"/></symbol>
+<symbol id="i-upload" viewBox="0 0 24 24"><path d="M12 20V9M7.5 13.5L12 9l4.5 4.5M5 4h14"/></symbol>
+<symbol id="i-sheet" viewBox="0 0 24 24"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M12 11v6M9.5 14.5L12 17l2.5-2.5"/></symbol>
+<symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/></symbol>
+<symbol id="i-logout" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5M21 12H9"/></symbol>
+<symbol id="i-light" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></symbol>
+<symbol id="i-dark" viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></symbol>
+<symbol id="i-auto" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor"/></symbol>
+<symbol id="i-users" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6"/><path d="M16 4.7a3.5 3.5 0 0 1 0 6.6M18 14.4c2.2.7 3.5 2.6 3.5 5.6"/></symbol>
+<symbol id="i-save" viewBox="0 0 24 24"><path d="M5 3h11l4 4v12a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/><path d="M7 3v5h8V3M7 21v-7h10v7"/></symbol>
+<symbol id="i-trash" viewBox="0 0 24 24"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14M10 10v6M14 10v6"/></symbol>
+<symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></symbol>
+<symbol id="i-download" viewBox="0 0 24 24"><path d="M12 4v11M7.5 10.5L12 15l4.5-4.5M5 20h14"/></symbol>
+<symbol id="i-car" viewBox="0 0 24 24"><path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2"/><circle cx="7" cy="17" r="2"/><path d="M9 17h6"/><circle cx="17" cy="17" r="2"/></symbol>
+<symbol id="i-swap" viewBox="0 0 24 24"><path d="M7 4L3 8l4 4M3 8h14M17 20l4-4-4-4M21 16H7"/></symbol>
+<symbol id="i-back" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></symbol>
+<symbol id="i-trip" viewBox="0 0 24 24"><path d="M22 16.5v-2l-9-5.5V3.5a1 1 0 0 0-2 0V9l-9 5.5v2l9-2.5V19l-2 1.5V22l3-1 3 1v-1.5L13 19v-5z"/></symbol>
+<symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></symbol>
+<symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
+<symbol id="i-more" viewBox="0 0 24 24"><circle cx="5" cy="12" r="2.2" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="2.2" fill="currentColor" stroke="none"/><circle cx="19" cy="12" r="2.2" fill="currentColor" stroke="none"/></symbol>
+<symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></symbol>
+</defs></svg>
+{% set ep = request.endpoint %}
+<header><a class="brand" href="{{ url_for('index') }}">🍓 RaspiCash</a>
+{% if g.user %}<span class="who">{{ g.user.name }}</span>
+<button type="button" id="tt" class="ib" aria-label="Cambia tema"></button>
+<div class="menu">
+<button type="button" id="mb" class="ib {{ 'on' if ep in ('categories','backup_page','import_page','import_preview','admin','users') }}" aria-label="Menu" aria-expanded="false" aria-controls="mp"><svg class="i"><use href="#i-menu"/></svg></button>
+<div id="mp" class="mp" hidden>
+<div class="mu">{{ g.user.name }}</div>
+<a class="mi {{ 'on' if ep=='categories' }}" href="{{ url_for('categories') }}"><svg class="i"><use href="#i-tag"/></svg>Categorie</a>
+<a class="mi {{ 'on' if ep in ('backup_page','import_page','import_preview') }}" href="{{ url_for('backup_page') }}"><svg class="i"><use href="#i-xfer"/></svg>Esporta/Importa</a>
+{% if g.user.is_admin %}<a class="mi {{ 'on' if ep in ('admin','users') }}" href="{{ url_for('admin') }}"><svg class="i"><use href="#i-shield"/></svg>Admin</a>{% endif %}
+<hr>
+<a class="mi" href="{{ url_for('logout') }}"><svg class="i"><use href="#i-logout"/></svg>Esci</a>
+</div></div>
+{% else %}<button type="button" id="tt" class="ib" aria-label="Cambia tema"></button>{% endif %}</header>
+<main>{% for m in get_flashed_messages() %}<div class="flash">{{ m }}</div>{% endfor %}{% block body %}{% endblock %}</main>
+{% if g.user %}<nav class="bar" aria-label="Navigazione principale">
+<a href="{{ url_for('index') }}" class="{{ 'on' if ep=='index' }}"><span class="pill"><svg class="i"><use href="#i-plus"/></svg></span>Inserisci</a>
+<a href="{{ url_for('history') }}" class="{{ 'on' if ep in ('history','edit') }}"><span class="pill"><svg class="i"><use href="#i-list"/></svg></span>Storico</a>
+<a href="{{ url_for('summary_page') }}" class="{{ 'on' if ep=='summary_page' }}"><span class="pill"><svg class="i"><use href="#i-pie"/></svg></span>Riepilogo</a>
+<div class="spw">
+<button type="button" id="sb" aria-label="Altro: Auto, Viaggi, Prestiti" class="tb {{ 'on' if ep in ('fuel','cars_page','trips','loans','people_page') }}" aria-expanded="false" aria-controls="sp"><span class="pill"><svg class="i"><use href="#i-more"/></svg></span>Altro</button>
+<div id="sp" class="mp" hidden>
+<a class="mi {{ 'on' if ep in ('fuel','cars_page') }}" href="{{ url_for('fuel') }}"><svg class="i"><use href="#i-car"/></svg>Auto</a>
+<a class="mi {{ 'on' if ep=='trips' }}" href="{{ url_for('trips') }}"><svg class="i"><use href="#i-trip"/></svg>Viaggi</a>
+<a class="mi {{ 'on' if ep in ('loans','people_page') }}" href="{{ url_for('loans') }}"><svg class="i"><use href="#i-swap"/></svg>Prestiti</a>
+</div></div>
+</nav>{% endif %}<script>(function(){var b=document.getElementById("tt"),r=document.documentElement,m=["auto","light","dark"],nm={auto:"automatico",light:"chiaro",dark:"scuro"};
+function cur(){return r.dataset.theme||"auto"}
+function show(){var i='<svg class="i"><use href="#i-'+cur()+'"/></svg>';b.innerHTML=b.dataset.l?i+"Tema: "+nm[cur()]:i;b.title="Tema: "+nm[cur()]}
+b.onclick=function(){var n=m[(m.indexOf(cur())+1)%3];if(n=="auto")delete r.dataset.theme;else r.dataset.theme=n;
+try{if(n=="auto")localStorage.removeItem("theme");else localStorage.setItem("theme",n)}catch(e){}show()};show()})();
+(function(){var P=[];
+function wire(bid,pid,ic){var b=document.getElementById(bid),p=document.getElementById(pid);if(!b)return;
+var u=b.querySelector("use"),h0=u.getAttribute("href");
+function set(o){p.hidden=!o;b.setAttribute("aria-expanded",o);u.setAttribute("href",o?"#i-x":h0)}
+P.push({b:b,p:p,set:set});
+b.onclick=function(e){e.stopPropagation();var o=p.hidden;P.forEach(function(x){x.set(false)});set(o)}}
+wire("mb","mp");wire("sb","sp");
+document.addEventListener("click",function(e){P.forEach(function(x){if(!x.p.hidden&&!x.p.contains(e.target))x.set(false)})});
+document.addEventListener("keydown",function(e){if(e.key=="Escape")P.forEach(function(x){if(!x.p.hidden){x.set(false);x.b.focus()}})})})();</script>
+</body></html>

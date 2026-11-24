@@ -1,0 +1,8 @@
+{% extends "base.html" %}{% block body %}
+<form class="card" method="post" action="{{ url_for('user_add') }}"><b>Nuovo utente</b>
+<label>Nome<input name="name" required maxlength="30"></label><label>Password (min. 4 caratteri)<input name="password" type="password" required></label>
+<label class="chk"><input type="checkbox" name="admin" value="1"> Amministratore</label><button>Aggiungi utente</button></form>
+{% for u in us %}<div class="card"><b>{{ u.name }}</b> {% if u.is_admin %}<span class="meta">· admin</span>{% endif %} <span class="meta">· {{ u.n }} spese</span>
+<form class="row" method="post" action="{{ url_for('user_pw', id=u.id) }}" style="margin-top:8px"><input name="password" type="password" placeholder="Nuova password" required><button>Cambia</button></form>
+{% if u.id!=g.user.id and not u.n %}<form method="post" action="{{ url_for('user_del', id=u.id) }}" onsubmit="return confirm('Eliminare utente?')"><button class="del">Elimina</button></form>{% endif %}</div>{% endfor %}
+{% endblock %}

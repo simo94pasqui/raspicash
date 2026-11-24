@@ -1,0 +1,11 @@
+{% extends "base.html" %}{% block body %}
+<form class="card row" method="post" action="{{ url_for('cat_add') }}"><input name="name" placeholder="Nuova categoria" required maxlength="40"><button>Aggiungi</button></form>
+<div class="card">{% for c in cats if not c.archived %}
+<div class="row" style="margin-bottom:8px">
+<form method="post" action="{{ url_for('cat_rename', id=c.id) }}" class="row" style="flex:1"><input name="name" value="{{ c.name }}" required maxlength="40"><button class="ico" title="Salva nome" aria-label="Salva nome"><svg class="i"><use href="#i-save"/></svg></button></form>
+{% if c.is_fuel or c.is_car or c.is_trip %}<span class="meta" title="Categoria speciale">speciale</span>{% else %}<form method="post" action="{{ url_for('cat_delete', id=c.id) }}" onsubmit="return confirm('{{ ('Usata in %d spese: verrà archiviata. Continuare?' % c.n) if c.n else 'Eliminare la categoria?' }}')"><button class="del ico" title="Rimuovi" aria-label="Rimuovi"><svg class="i"><use href="#i-trash"/></svg></button></form>{% endif %}</div>
+{% endfor %}</div>
+{% if cats|selectattr('archived')|list %}<h2>Archiviate</h2><div class="card">{% for c in cats if c.archived %}
+<div class="row" style="margin-bottom:8px"><span style="flex:1">{{ c.name }} <span class="meta">({{ c.n }} spese)</span></span>
+<form method="post" action="{{ url_for('cat_restore', id=c.id) }}"><button>Ripristina</button></form></div>{% endfor %}</div>{% endif %}
+{% endblock %}

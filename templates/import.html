@@ -1,0 +1,24 @@
+{% extends "base.html" %}{% block body %}
+{% include "_xtabs.html" %}
+<p class="meta" style="margin:-4px 2px 12px">Prima vedi un'anteprima: non cambia nulla finché non confermi. Le righe già presenti vengono saltate e prima di scrivere faccio una copia di sicurezza del database.</p>
+<form class="card" method="post" action="{{ url_for('import_preview') }}" enctype="multipart/form-data"><h2 style="margin-top:0">Importa spese</h2>
+<input type="hidden" name="kind" value="spese">
+<label>File Excel (.xlsx)<input type="file" name="file" accept=".xlsx" required></label>
+<button><svg class="i"><use href="#i-sheet"/></svg>Controlla il file</button>
+<p class="meta">Stesso formato del foglio «Spese» esportato dalla pagina Esporta, anche con auto, viaggi e prestiti. Obbligatorie: Data, Descrizione, Categoria, Importo. Le righe Benzina vanno importate come rifornimenti.</p></form>
+<form class="card" method="post" action="{{ url_for('import_preview') }}" enctype="multipart/form-data"><h2 style="margin-top:0">Importa rifornimenti</h2>
+<input type="hidden" name="kind" value="rifornimenti">
+<label>File Excel (.xlsx)<input type="file" name="file" accept=".xlsx" required></label>
+<button><svg class="i"><use href="#i-sheet"/></svg>Controlla il file</button>
+<p class="meta">Stesso formato del foglio «Rifornimenti». Obbligatorie: Data e Auto, più almeno l'Importo o i Litri (con due valori su tre calcolo il terzo). Se esiste già una spesa Benzina uguale ma senza dettagli, la completo invece di duplicarla.</p></form>
+<form class="card" id="imptrip" method="post" action="{{ url_for('import_preview') }}" enctype="multipart/form-data"><h2 style="margin-top:0">Importa spese di un viaggio</h2>
+<input type="hidden" name="kind" value="viaggio">
+<label>Viaggio<select name="trip_id">{% for t in trips %}<option value="{{ t.id }}">{{ t.name }}{{ ' (lavoro)' if t.is_work }}{{ ' (archiviato)' if t.archived }}</option>{% endfor %}<option value="new" {{ 'selected' if not trips }}>+ Nuovo viaggio…</option></select></label>
+<div id="itn"><label>Nome del nuovo viaggio<input name="new_trip" maxlength="60" autocomplete="off" placeholder="es. Berlino ottobre 2026"></label>
+<label class="chk"><input type="checkbox" name="new_trip_work" value="1"> Viaggio di lavoro (alcune spese le paga l'azienda)</label></div>
+<label>File Excel (.xlsx)<input type="file" name="file" accept=".xlsx" required></label>
+<button><svg class="i"><use href="#i-sheet"/></svg>Controlla il file</button>
+<p class="meta">Lista semplice: Data, Descrizione, Importo (obbligatorie), Buono, Pagata da (Io / Azienda), Privata. Categoria Viaggi e viaggio li imposto io.</p></form>
+<script>(function(){var f=document.getElementById('imptrip'),s=f.querySelector('select'),n=document.getElementById('itn'),i=n.querySelector('input[name=new_trip]');
+function u(){var w=s.value==='new';n.style.display=w?'':'none';i.disabled=!w;i.required=w}s.addEventListener('change',u);u()})();</script>
+{% endblock %}

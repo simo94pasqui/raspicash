@@ -1,0 +1,11 @@
+{% extends "base.html" %}{% from "_exp.html" import row %}{% block body %}
+<form class="card filters" method="get">
+<label>Anno<select name="year">{% for y in years %}<option {{ 'selected' if y|int==year }}>{{ y }}</option>{% endfor %}</select></label>
+<label>Mese<select name="month"><option value="0">Tutti</option>{% for m in months %}<option value="{{ loop.index }}" {{ 'selected' if loop.index==month }}>{{ m }}</option>{% endfor %}</select></label>
+<label>Categoria<select name="cat"><option value="0">Tutte</option>{% for c in allcats %}<option value="{{ c.id }}" {{ 'selected' if c.id==cat }}>{{ c.name }}</option>{% endfor %}</select></label>
+<label>Mostra<select name="show"><option value="shared" {{ 'selected' if show=='shared' }}>Condivise</option><option value="mine" {{ 'selected' if show=='mine' }}>Mie private</option><option value="all" {{ 'selected' if show=='all' }}>Tutte</option></select></label>
+<button>Filtra</button></form>
+<div class="tot"><span>{{ rows|length }} spese</span><span>{{ tot|eur }} €</span></div>
+{% if ncomp %}<p class="meta" style="margin:-6px 2px 10px">{{ ncomp }} {{ 'spesa pagata dall\'azienda non inclusa' if ncomp==1 else 'spese pagate dall\'azienda non incluse' }} nel totale.</p>{% endif %}
+<div class="card">{% for r in rows %}{{ row(r) }}{% else %}Nessuna spesa con questi filtri.{% endfor %}</div>
+{% endblock %}

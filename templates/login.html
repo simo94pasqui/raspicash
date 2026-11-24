@@ -1,0 +1,8 @@
+{% extends "base.html" %}{% block body %}
+<form class="card" method="post"><h2 style="margin-top:0">{{ 'Primo avvio: crea l’amministratore' if setup else 'Accedi' }}</h2>
+<label>Nome<input name="name" required autocomplete="username" autocapitalize="none"></label>
+<label>Password<input name="password" type="password" required autocomplete="{{ 'new-password' if setup else 'current-password' }}"></label>
+{% if not setup %}<label class="chk"><input type="checkbox" name="remember" value="1" checked> Resta connesso su questo dispositivo</label>{% endif %}
+<button>{{ 'Crea utente' if setup else 'Entra' }}</button></form>{% if setup %}<form class="card" method="post" action="{{ url_for('restore_setup') }}" enctype="multipart/form-data"><h2 style="margin-top:0">Oppure ripristina da backup</h2>
+<label>File di backup (.db)<input type="file" name="backup" required></label><button>Ripristina</button></form>{% endif %}
+{% endblock %}

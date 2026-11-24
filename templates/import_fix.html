@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% macro pick(p, label) %}<label class="{{ 'err' if p.key in err }}">{{ label }}<select name="f_{{ p.key }}" data-pick>
+{% if not p.cur and not p.extra %}<option value="" selected>Scegli…</option>{% endif %}
+{% if p.extra %}<option value="{{ p.extra }}" selected>{{ p.extra }} (nuovo)</option>{% endif %}
+{% for n, w in p.rows %}<option value="{{ n }}" data-work="{{ '' if w is none else w }}" {{ 'selected' if n == p.cur }}>{{ n }}{{ ' (lavoro)' if w }}</option>{% endfor %}
+{% if p.allow_new %}<option value="__new__">+ Nuovo…</option>{% endif %}</select></label>
+<label class="newn" hidden>Nome del nuovo valore<input name="f_{{ p.key }}_new" maxlength="60" autocomplete="off" disabled></label>{% endmacro %}
+{% macro txt(key, label, kind='text', ph='') %}<label class="{{ 'err' if key in err }}">{{ label }}<input name="f_{{ key }}" {% if kind == 'date' %}type="date"{% elif kind == 'num' %}inputmode="decimal"{% endif %} value="{{ v[key] }}" {% if ph %}placeholder="{{ ph }}"{% endif %} maxlength="120" autocomplete="off"></label>{% endmacro %}
+{% macro paid(label) %}<label id="payl" class="{{ 'err' if 'paidby' in err }}">{{ label }}<select name="f_paidby"><option value="Io" {{ 'selected' if v.paidby != 'Azienda' }}>Io</option><option value="Azienda" {{ 'selected' if v.paidby == 'Azienda' }}>Azienda (non la pago io)</option></select></label>{% endmacro %}
+{% macro priv() %}<label class="chk {{ 'err' if 'private' in err }}" id="privl"><input type="hidden" name="f_private" value="No"><input type="checkbox" name="f_private" value="Sì" {{ 'checked' if v.private == 'Sì' }}> <svg class="i lk"><use href="#i-lock"/></svg> Privata (solo tu la vedi)</label>{% endmacro %}
+{% block body %}
+{% include "_xtabs.html" %}
+<h2 style="margin-top:0">Risolvi gli errori</h2>
+<p class="meta" style="margin-top:-4px">File «{{ fname }}» · errore {{ pos }} di {{ total }}</p>
+<form class="card" id="fx" method="post" action="{{ url_for('import_fix_save') }}">
+<input type="hidden" name="token" value="{{ token }}"><input type="hidden" name="row" value="{{ it.row }}">
+<p style="color:#c62828;margin:0"><b>Riga {{ it.row }}</b> · {{ it.msg }}</p>
+
+{% if kind == 'rifornimenti' %}
+{{ txt('date', 'Data', 'date') }}
+{{ txt('fuel_amount', 'Importo €', 'num', '0,00') }}
+{{ pick(P.car, 'Auto') }}
+<div class="two">{{ txt('fill_no', 'N. rifornimento', 'num') }}{{ txt('odometer', 'Km totali auto', 'num', 'es. 45230') }}</div>
+<div class="two">{{ txt('liters', 'Litri', 'num', '0,00') }}{{ txt('price', 'Prezzo al litro €', 'num', 'auto') }}</div>
+<div class="two">{{ txt('trip_km', 'Km col pieno precedente', 'num', 'auto') }}{{ txt('claimed', "Km dichiarati dall'auto", 'num') }}</div>
+<p class="meta">Bastano l'importo o i litri: con due valori su tre (importo, litri, prezzo al litro) calcolo il terzo. Se lasci vuoti i km col pieno precedente, uso la differenza dei km totali.</p>
+
+{% elif kind == 'viaggio' %}
+{{ txt('date', 'Data', 'date') }}
+{{ txt('description', 'Descrizione') }}
+<div class="two">{{ txt('amount', 'Importo €', 'num', '0,00') }}{{ txt('voucher', 'Importo buono €', 'num', '0,00') }}</div>
+{% if work %}{{ paid('Pagata da') }}{% endif %}
+{{ priv() }}
+
+{% else %}
+{{ txt('date', 'Data', 'date') }}
+{{ txt('description', 'Descrizione') }}
+{{ pick(P.category, 'Categoria') }}
+<div class="two">{{ txt('amount', 'Importo €', 'num', '0,00') }}{{ txt('voucher', 'Importo buono €', 'num', '0,00') }}</div>
+<div id="tripx" hidden>{{ pick(P.trip, 'Viaggio') }}{{ paid('Pagata da') }}</div>
+<div id="carx" hidden>{{ pick(P.car, 'Auto') }}</div>
+{{ priv() }}
+<label class="chk" id="subl"><input type="hidden" name="f_loanon" value="0"><input type="checkbox" name="f_loanon" value="1" {{ 'checked' if v.loanon }}> <svg class="i lk"><use href="#i-swap"/></svg> Prestiti</label>
+<div id="subx" hidden>{{ pick(P.person, 'Persona') }}
+{{ txt('loan', 'Importo del prestito €', 'num', '0,00') }}
+<p class="meta">L'importo sopra è il totale della spesa. Qui indica la parte prestata (o che ha pagato l'altra persona). Se l'hai dato tu, nel Riepilogo la spesa conta il totale meno questa parte.</p></div>
+{% endif %}
+
+<button name="action" value="save"><svg class="i"><use href="#i-check"/></svg>Salva e continua</button>
+<div class="two">
+<button name="action" value="skip" formnovalidate style="background:transparent;color:var(--ac);border:1px solid var(--bd)">Salta per ora</button>
+<button name="action" value="exclude" formnovalidate style="background:transparent;color:#c62828;border:1px solid var(--bd)">Escludi la riga</button></div>
+<a class="dl" href="{{ url_for('import_review', token=token) }}">Torna all'anteprima</a>
+</form>
+<script>(function(){
+var F=document.getElementById('fx'),tripN={{ js.trip_cats|tojson }},carN={{ js.car_cats|tojson }},
+cat=F.querySelector('[name=f_category]'),tx=document.getElementById('tripx'),cx=document.getElementById('carx'),
+pv=document.getElementById('privl'),sl=document.getElementById('subl'),sx=document.getElementById('subx'),
+pay=F.querySelector('[name=f_paidby]'),sc=F.querySelector('input[type=checkbox][name=f_loanon]');
+function on(b,show){if(!b)return;b.hidden=!show;b.querySelectorAll('input,select').forEach(function(e){e.disabled=!show})}
+function sync(){
+ if(cat){var c=cat.value.toLowerCase(),t=tripN.indexOf(c)>=0,k=carN.indexOf(c)>=0;
+  on(tx,t);on(cx,k);
+  var ts=tx&&tx.querySelector('select[name=f_trip]'),o=ts&&ts.options[ts.selectedIndex],
+  w=t&&!(o&&o.dataset.work==='0'),pl=document.getElementById('payl');
+  if(pl)on(pl,w);   /* "Pagata da" solo per i viaggi di lavoro */
+  var co=t&&w&&pay&&pay.value==='Azienda';
+  on(pv,!k);on(sl,!(k||co));on(sx,!(k||co)&&sc&&sc.checked);}
+ F.querySelectorAll('select[data-pick]').forEach(function(s){
+  var n=F.querySelector('[name="'+s.name+'_new"]'),nw=!s.disabled&&s.value==='__new__';
+  n.parentNode.hidden=!nw;n.disabled=!nw;n.required=nw})}
+F.addEventListener('change',sync);sync();})();</script>
+{% endblock %}
